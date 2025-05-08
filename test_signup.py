@@ -2,8 +2,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.devtools.v135.audits import PartitioningBlobURLIssueDetails
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select
+
 import time
 
 chrome_portable_path = r'C:\ChromeDriver\chrome_133_win64\chrome-win64\chrome-win64\chrome.exe'
@@ -25,6 +28,7 @@ def close_cookie_popup(driver):
     except:
         print("Cookie button not found or already dismissed.")
 
+
 def test_signup_valid_email(driver):
     try:
         driver.get("https://www.automationexercise.com/")
@@ -41,6 +45,31 @@ def test_signup_valid_email(driver):
         time.sleep(2)
 
         assert "Enter Account Information" in driver.page_source
+        pswd_input = driver.find_element(By.ID, "password")
+        pswd_input.send_keys("pswd123")
+        day_select = Select(driver.find_element(By.CSS_SELECTOR, "#days"))
+        day_select.select_by_value("7")
+        month_select = Select(driver.find_element(By.CSS_SELECTOR, "#months"))
+        month_select.select_by_value("4")
+        year_select = Select(driver.find_element(By.CSS_SELECTOR, "#years"))
+        year_select.select_by_value("1996")
+        first_name_input = driver.find_element(By.ID, "first_name").send_keys("Testeur")
+        last_name_input = driver.find_element(By.ID, "last_name").send_keys("AUTOMATION")
+        company_input = driver.find_element(By.ID, "company").send_keys("4TEST")
+        address_input = driver.find_element(By.ID, "address1").send_keys("MARS")
+        adress2_input = driver.find_element(By.ID, "address2").send_keys("45")
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "country")))
+        country_dropdown = Select(driver.find_element(By.ID, "country"))
+        country_dropdown.select_by_visible_text("Canada")
+        state_input = driver.find_element(By.ID, "state").send_keys("Quebec")
+        city_input = driver.find_element(By.ID, "city").send_keys("La lune")
+        zip_input = driver.find_element(By.ID, "zipcode").send_keys("007")
+        mobile_input = driver.find_element(By.ID, "mobile_number").send_keys("0102030405060")
+        create_account_button = driver.find_element(By.CSS_SELECTOR, "button[data-qa='create-account']")
+        create_account_button.click()
+        time.sleep(2)
+        assert "Account Created!" in driver.page_source
+
         print("✅ Signup avec email valide fonctionne.")
     except Exception as e:
         print("❌ Échec du signup avec email valide :", e)
@@ -77,6 +106,22 @@ def test_signup_empty_fields(driver):
     except:
         print("❌ Le test avec champs vides a échoué ou le comportement est incorrect.")
 
+def signup_existing_email(driver):
+    try:
+        driver.get("https://www.automationexercise.com/login")
+        name_input = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "name")))
+        name_input.send_keys("Faouaz")
+        email_input = driver.find_element(By.XPATH, "//input[@data-qa='signup-email']")
+        email_input.send_keys("test123@faouaz.com")
+        driver.find_element(By.CSS_SELECTOR, "button[data-qa='signup-button']").click()
+        time.sleep(2)
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//p[normalize-space()='Email Address already exist!']")))
+        print("✅ Signup avec email déjà existant ne fonctionne pas (comme prévu).")
+    except:
+            print("❌ Le test pour email déjà existant a échoué ou le comportement est incorrect.")
+
+
+
 def main():
     driver = setup_driver()
     try:
@@ -84,6 +129,7 @@ def main():
         test_signup_valid_email(driver)
         test_signup_invalid_email(driver)
         test_signup_empty_fields(driver)
+        signup_existing_email(driver)
     finally:
         driver.quit()
 
