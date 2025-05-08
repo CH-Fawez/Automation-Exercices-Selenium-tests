@@ -2,10 +2,10 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.devtools.v135.audits import PartitioningBlobURLIssueDetails
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+import random
 
 import time
 
@@ -37,9 +37,14 @@ def test_signup_valid_email(driver):
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, "Signup / Login"))).click()
         name_input = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.NAME, "name")))
         name_input.send_keys("Faouaz")
+        print("➡️ Nom saisi")
+
+        # Générer un email aléatoire
+        random_email = f"test{random.randint(1000, 9999)}@faouaz.com"
 
         email_input = driver.find_element(By.XPATH, "//input[@data-qa='signup-email']")
-        email_input.send_keys("test123@faouaz.com")
+        email_input.send_keys(random_email)
+        print(f"➡️ Email saisi : {random_email}")
 
         driver.find_element(By.CSS_SELECTOR, "button[data-qa='signup-button']").click()
         time.sleep(2)
@@ -67,10 +72,44 @@ def test_signup_valid_email(driver):
         mobile_input = driver.find_element(By.ID, "mobile_number").send_keys("0102030405060")
         create_account_button = driver.find_element(By.CSS_SELECTOR, "button[data-qa='create-account']")
         create_account_button.click()
+        print("➡️ Clic sur 'Create Account'")
         time.sleep(2)
         assert "Account Created!" in driver.page_source
+        print("➡️ Vérification du message 'Account Created'")
 
-        print("✅ Signup avec email valide fonctionne.")
+
+        try:
+            continue_button = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".btn.btn-primary")))
+            driver.execute_script("arguments[0].scrollIntoView(true);", continue_button)
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".btn.btn-primary")))
+            continue_button.click()
+        except Exception as e:
+            print("❌ Bouton Continue non cliquable :", e)
+            driver.save_screenshot("error_continue_click.png")
+
+
+        # attendre que le bouton Delete Account apparaisse
+        try:
+            delete_account_button = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, "//a[normalize-space()='Delete Account']"))
+            )
+            driver.execute_script("arguments[0].scrollIntoView();", delete_account_button)
+            delete_account_button.click()
+            time.sleep(2)
+
+            assert "Account Deleted!" in driver.page_source
+            print("✅compte supprimé avec succès.")
+
+            #clicker sur le bouton continue
+            continue_button = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR, ".btn.btn-primary")))
+            driver.execute_script("arguments[0].scrollIntoView(true);", continue_button)
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, ".btn.btn-primary")))
+            continue_button.click()
+            print("✅ Clic sur 'Continue'")
+        except:
+            print("❌  Échec de la suppression du compte :")
+
+
     except Exception as e:
         print("❌ Échec du signup avec email valide :", e)
 
