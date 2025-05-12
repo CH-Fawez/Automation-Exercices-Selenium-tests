@@ -87,14 +87,14 @@ def login_with_invalid_credentials(driver):
             time.sleep(2)  # Wait for the error message to appear
             assert "Your email or password is incorrect!" in driver.page_source
             print("✅Failed to log in with invalid credentials")
-        except Exception as e:
-            print("log in with invalid credentials works: {e}")
+        except:
+            print("log in with invalid credentials works")
 
 def main():
     driver = setup_driver()
     try:
          navigate_to_web_page(driver, url)
-         maximize_window = driver.maximize_window()
+         driver.maximize_window()
          close_cookie_popup(driver)
          click_on_login_signup_button(driver)
          login_with_valid_credentials(driver)
