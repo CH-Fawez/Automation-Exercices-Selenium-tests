@@ -60,8 +60,6 @@ def search_product():
 
 
 
-
-
 def main():
     try:
         bot.driver.maximize_window()
